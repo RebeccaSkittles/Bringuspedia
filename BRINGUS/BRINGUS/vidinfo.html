@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Video — Bringuspedia</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="navbar" aria-label="Main Navigation">
+        <div class="nav-left">
+          <a href="index.html" class="nav-link">Home</a>
+        </div>
+        <div class="nav-center">
+          <a href="index.html" aria-label="Bringus Studios Home">
+            <img src="img/bringus_logo.png" alt="Bringus Studios logo" class="logo" />
+          </a>
+        </div>
+        <div class="nav-right">
+          <a href="https://bringus.store" class="nav-link" target="_blank" rel="noopener noreferrer">Store</a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="vid-main">
+      <div class="vid-container">
+        <div class="vid-thumb" id="vid-thumb">
+          <!-- Thumbnail inserted here -->
+        </div>
+        <div class="vid-details">
+          <h1 id="vid-title" class="vid-title">Loading…</h1>
+          <div id="vid-rating" class="vid-rating" aria-label="Rating"></div>
+          <div id="vid-content" class="vid-content"></div>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      // Minimal markdown parser for our use-case (images, headings, paragraphs, lists, bold/italic)
+      function renderMarkdown(md) {
+        // Escape HTML to avoid injection
+        const escapeHtml = str => str
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+
+        // Handle images: ![alt](url)
+        md = md.replace(/^!\[(.*?)\]\((.*?)\)/gm, function(_, alt, src) {
+          return `<img src="${src}" alt="${escapeHtml(alt)}" class="md-image"/>`;
+        });
+
+        // Headings
+        md = md.replace(/^# (.*)$/gm, '<h1>$1</h1>');
+        md = md.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+
+        // Bold and italics
+        md = md.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        md = md.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+        // Links
+        md = md.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+
+        // Lists
+        md = md.replace(/^\- (.*)$/gm, '<li>$1</li>');
+        md = md.replace(/(<li>.*<\/li>\n?)+/g, function(list) {
+          return '<ul>' + list.replace(/<li>/g, '<li>') + '</ul>';
+        });
+
+        // Wrap paragraphs: split by two newlines and wrap with <p> if not a heading, image, or list
+        const blocks = md.split(/\n\n+/).map(block => block.trim()).filter(Boolean);
+        const out = blocks.map(block => {
+          // Already a heading or UL/LI or img
+          if (/^<h\d|^<ul|^<img/.test(block)) return block;
+          // If block contains li, ensure wrapping
+          if (/^<li>/.test(block)) return '<ul>' + block + '</ul>';
+          return '<p>' + block + '</p>';
+        }).join('\n');
+
+        return out;
+      }
+
+      // Convert rating string like 'Rating: 4/5' to HTML stars
+      function ratingToStars(ratingStr) {
+        const match = ratingStr.match(/(\d+)\s*\/\s*(\d+)/);
+        if (!match) return '';
+        const val = Math.min(parseInt(match[1], 10), parseInt(match[2], 10));
+        const max = parseInt(match[2], 10);
+        let stars = '';
+        for (let i = 0; i < val; i++) stars += '★';
+        for (let i = val; i < max; i++) stars += '☆';
+        return `<div class="stars">${stars} <span class="stars-text">${val}/${max}</span></div>`;
+      }
+
+      async function loadVideoFromHash() {
+        const hash = window.location.hash.replace(/^#/, '');
+        if (!hash) {
+          document.getElementById('vid-title').textContent = 'No video selected';
+          return;
+        }
+        const mdPath = `md/${hash}.md`;
+        try {
+          const res = await fetch(mdPath);
+          if (!res.ok) throw new Error('File not found');
+          let text = await res.text();
+
+          // Extract and remove leading image for the thumbnail
+          const imgMatch = text.match(/^!\[(.*?)\]\((.*?)\)/m);
+          if (imgMatch) {
+            const thumbHtml = `<img src="${imgMatch[2]}" alt="${imgMatch[1]}" />`;
+            document.getElementById('vid-thumb').innerHTML = thumbHtml;
+            // Remove that line from md text
+            text = text.replace(imgMatch[0], '');
+          }
+
+          // Extract title
+          const titleMatch = text.match(/^#\s+(.*)/m);
+          if (titleMatch) {
+            document.getElementById('vid-title').textContent = titleMatch[1];
+            // Remove title from content
+            text = text.replace(titleMatch[0], '');
+          }
+
+          // Extract Rating line if present
+          const ratingMatch = text.match(/^Rating:\s*(.*)/m);
+          if (ratingMatch) {
+            document.getElementById('vid-rating').innerHTML = ratingToStars(ratingMatch[1]);
+            // Remove rating line from content
+            text = text.replace(ratingMatch[0], '');
+          }
+
+          // Extract YouTube link if present
+          const ytMatch = text.match(/^YouTube:\s*(\S+)/m);
+          if (ytMatch) {
+            const ytUrl = ytMatch[1];
+            // create a button anchor and place it under the thumbnail
+            const btnHtml = `<a class="btn-youtube" href="${ytUrl}" target="_blank" rel="noopener noreferrer">Binge watch on YouTube</a>`;
+            const thumbEl = document.getElementById('vid-thumb');
+            thumbEl.innerHTML += btnHtml;
+            // Remove YouTube line from content
+            text = text.replace(ytMatch[0], '');
+          }
+
+          // Render the remaining markdown
+          document.getElementById('vid-content').innerHTML = renderMarkdown(text);
+        } catch (err) {
+          document.getElementById('vid-title').textContent = 'Error loading video';
+          document.getElementById('vid-content').textContent = err.message;
+        }
+      }
+
+      // Load on initial load and when hash changes
+      window.addEventListener('load', loadVideoFromHash);
+      window.addEventListener('hashchange', loadVideoFromHash);
+    </script>
+    <footer class="site-footer">
+      <p><a class="egg-link" href="easteregg.html">Made by a fellow gamer &bull; Not affiliated with Bringus Studios - the name, logo and content are all propterty of Bringus Studios. &bull; Don't click this text</a></p>
+    </footer>
+  </body>
+</html>

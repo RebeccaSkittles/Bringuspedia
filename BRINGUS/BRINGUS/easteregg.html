@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BRINGUS: Easter Egg</title>
+    <link rel="stylesheet" href="css/styles.css" />
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <style>
+      :root { --gap: 6px; }
+      html,body { height:100%; background:#000; margin:0; }
+      .eggshell { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:12px; }
+      .egg-grid { width:100%; height:100vh; display:grid; gap:var(--gap); grid-template-columns: repeat(var(--cols), 1fr); }
+      .cell { position:relative; overflow:hidden; background:#111; border-radius:6px; }
+      .cell iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
+      .overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:20; }
+      .overlay .start-btn { background:rgba(255,255,255,0.06); color:#fff; border:1px solid rgba(255,255,255,0.08); padding:16px 22px; border-radius:8px; font-weight:700; cursor:pointer; }
+      .close-btn { position:fixed; top:8px; right:10px; color:#fff; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.06); padding:8px; border-radius:4px; cursor:pointer; z-index:30; }
+    </style>
+  </head>
+  <body>
+    <div class="eggshell">
+      <div id="egg-grid" class="egg-grid" style="--cols:1">
+        <!-- Iframes will be injected here -->
+      </div>
+    </div>
+
+    <!-- No overlay: try to fullscreen & autoplay immediately. Note: browsers may block this without a user gesture. -->
+    <button id="closeBtn" class="close-btn" title="Exit Fullscreen & Close">Exit</button>
+
+    <script>
+      // Player state globals
+      let ytPlayers = [];
+      window.YTReady = false;
+      // Load `videos.txt` (list of URLs) and create grid of youtube placeholder divs for the YouTube IFrame API.
+      async function fetchVideos() {
+        try {
+          const res = await fetch('videos.txt');
+          if (!res.ok) throw new Error('Could not fetch video list');
+          const text = await res.text();
+          return text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+        } catch (e) {
+          console.error(e);
+          return [];
+        }
+      }
+
+      function getYouTubeId(url) {
+        try {
+          // Accept either share links or watch?v= urls
+          const u = new URL(url);
+          if (u.hostname.includes('youtu.be')) return u.pathname.split('/').pop();
+          if (u.searchParams.has('v')) return u.searchParams.get('v');
+          // fallback match
+          const m = url.match(/(?:v=|\/)([\w-]{11})/);
+          return m ? m[1] : null;
+        } catch (e) { return null; }
+      }
+
+      function buildGrid(videos) {
+        const n = videos.length;
+        let cols;
+        if (n <= 4) cols = n === 0 ? 1 : n; else cols = Math.ceil(n / 2); // mostly 2 rows for many items
+        const grid = document.getElementById('egg-grid');
+        grid.style.setProperty('--cols', cols);
+        grid.innerHTML = '';
+        videos.forEach((url, i) => {
+          const id = getYouTubeId(url);
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          // Create a placeholder div for the YT player
+          const placeholder = document.createElement('div');
+          placeholder.id = `player-${i}`;
+          placeholder.dataset.youtubeId = id || '';
+          placeholder.style.width = '100%';
+          placeholder.style.height = '100%';
+          cell.appendChild(placeholder);
+          grid.appendChild(cell);
+        });
+      }
+
+      async function start() {
+        const grid = document.getElementById('egg-grid');
+        const playersPlaceholder = grid.querySelectorAll('[data-youtube-id]');
+        // Request fullscreen if possible
+        try {
+          if (document.documentElement.requestFullscreen) {
+            await document.documentElement.requestFullscreen();
+          }
+        } catch(e) { console.warn('Fullscreen request failed', e); }
+        // Initialize players if the API is ready, otherwise wait for API callback
+        if (window.YT && window.YTReady) {
+          try { initPlayers(); } catch(e) { console.warn('initPlayers error', e); }
+        }
+        // Unmute/set volume/play as soon as players are ready
+        scheduleControlPlayers();
+      }
+
+      function exit() {
+        // Exit fullscreen if active
+        if (document.fullscreenElement) document.exitFullscreen();
+        window.location.href = 'index.html';
+      }
+
+      // build & auto start if user value present (best-effort; browsers may block fullscreen/autoplay)
+      (async function init(){
+        const videos = await fetchVideos();
+        if (videos.length === 0) {
+          document.getElementById('egg-grid').innerHTML = '<div style="color:#fff;">No videos found in videos.txt</div>';
+          return;
+        }
+        buildGrid(videos);
+        // Attempt to auto-start: request fullscreen and set iframe src for autoplay muted
+        try { start(); } catch(e) { console.warn('Auto-start failed', e); }
+      })();
+
+      // Load YT API callbacks and manage players
+      function onYouTubeIframeAPIReady() {
+        window.YTReady = true;
+        // If grid exists, initialize players
+        try { initPlayers(); } catch(e) { /* ignore */ }
+      }
+
+      function initPlayers() {
+        if (!window.YT || !window.YTReady) return;
+        const placeholders = document.querySelectorAll('[data-youtube-id]');
+        ytPlayers = [];
+        placeholders.forEach((pl, idx) => {
+          const vid = pl.dataset.youtubeId;
+          if (!vid) return;
+          const player = new YT.Player(pl.id, {
+            videoId: vid,
+            playerVars: { autoplay: 1, controls: 0, rel: 0, modestbranding: 1, playsinline: 1 },
+            events: {
+              onReady: function(e) {
+                try { e.target.setVolume(100); e.target.unMute(); } catch(err) { console.warn('Player ready setVolume error', err); }
+              }
+            }
+          });
+          ytPlayers.push(player);
+        });
+      }
+
+      function scheduleControlPlayers() {
+        if (!ytPlayers || ytPlayers.length === 0) {
+          if (window.YT && window.YTReady) {
+            initPlayers();
+            setTimeout(scheduleControlPlayers, 300);
+            return;
+          }
+          // retry
+          setTimeout(scheduleControlPlayers, 300);
+          return;
+        }
+        // control all players
+        ytPlayers.forEach(p => {
+          try { p.setVolume(100); p.unMute(); p.playVideo(); } catch(e) { /* ignore errors */ }
+        });
+      }
+      document.getElementById('closeBtn').addEventListener('click', exit);
+    </script>
+  </body>
+</html>
