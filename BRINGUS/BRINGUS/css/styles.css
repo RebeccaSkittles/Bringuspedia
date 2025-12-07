@@ -3,11 +3,15 @@
 
 /* Site background */
 html, body { height: 100%; }
+/* Use a column flex layout so the footer can reliably sit at the bottom */
 body {
 	background: #000000; /* black background */
 	color: #ffffff; /* default text color */
 	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 	line-height: 1.4;
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
 }
 
 /* Navbar */
@@ -61,6 +65,12 @@ body {
 	padding: 30px 20px;
 }
 
+/* Make the main element expand to fill remaining vertical space so footer sits at the bottom */
+main { flex: 1 0 auto; }
+
+/* Allow the existing page-specific containers to flow normally but still work with the flex main */
+.vid-main { padding: 20px; max-width: 1100px; margin: 0 auto 80px; }
+
 .hero-logo { height: 140px; width: auto; }
 
 .site-title {
@@ -71,12 +81,22 @@ body {
 	text-align: center;
 }
 
+/* Subtitle under the site title for a short description */
+.site-subtitle {
+	margin-top: 8px;
+	color: #bfbfbf; /* light grey */
+	font-size: 0.95rem; /* slightly smaller */
+	font-weight: 600;
+	text-align: center;
+}
+
 /* Responsive scaling */
 @media (max-width: 640px) {
 	.site-title { font-size: 2.2rem; }
 	.logo { height: 36px; }
 	.hero-logo { height: 110px; }
 	.nav-left, .nav-right { gap: 10px; }
+	.site-subtitle { font-size: 0.9rem; }
 }
 
 /* Cards grid */
@@ -87,6 +107,32 @@ body {
 	max-width: 1200px;
 	padding: 20px;
 	margin: 0 auto 40px;
+}
+
+/* 'Looking for more?' block below the cards */
+.more-info {
+	max-width: 1200px;
+	margin: 18px auto 36px;
+	padding: 12px 20px;
+	text-align: center;
+}
+.more-info-title {
+	color: #ffffff;
+	font-weight: 900; /* very bold */
+	font-size: 1.45rem; /* larger, more prominent */
+	margin-bottom: 8px;
+}
+.more-info-text {
+	color: #bfbfbf; /* soft grey */
+	font-size: 0.95rem; /* slightly smaller than title */
+	line-height: 1.45;
+	font-weight: 400; /* normal weight */
+}
+
+@media (max-width: 640px) {
+	.more-info { padding: 10px 12px; }
+	.more-info-title { font-size: 1.2rem; }
+	.more-info-text { font-size: 0.9rem; }
 }
 
 .card {
@@ -102,6 +148,7 @@ body {
 	border-radius: 12px;
 	width: 100%;
 	overflow: hidden;
+	position: relative; /* needed for badge overlay */
 }
 
 .card-image img, .card-image .card-thumb {
@@ -110,6 +157,27 @@ body {
 	object-fit: cover;
 	display: block;
 	border-radius: 12px;
+}
+
+/* Badge shown on images for special support card */
+.support-badge {
+	position: absolute;
+	top: 12px; /* moved down for extra space from image top */
+	left: 10px;
+	background: rgba(0,0,0,0.55);
+	color: #ffffff;
+	padding: 3px 6px; /* tightened padding */
+	border-radius: 4px; /* tightened radius */
+	font-weight: 700;
+	font-size: 0.72rem; /* noticeably smaller badge text */
+	line-height: 1.1;
+	white-space: nowrap;
+	box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+}
+
+/* Make badge readable on small screens by allowing wrapping if necessary */
+@media (max-width: 480px) {
+	.support-badge { top: 8px; font-size: 0.7rem; padding: 2px 6px; white-space: normal; }
 }
 
 .card-content {
@@ -147,7 +215,6 @@ body {
 }
 
 /* Video info layout */
-.vid-main { padding: 20px; max-width: 1100px; margin: 0 auto 80px; }
 .vid-container { display: flex; gap: 20px; align-items: flex-start; }
 .vid-thumb { flex: 0 0 420px; border-radius: 12px; overflow: hidden; }
 .vid-thumb { display: flex; flex-direction: column; align-items: stretch; }
@@ -204,6 +271,62 @@ body {
 .site-footer:hover { cursor: not-allowed; }
 .site-footer a { color: inherit; text-decoration: none; }
 .site-footer a:hover { cursor: not-allowed; }
+
+/* AA battery notice — bottom-left pseudo-cookie box */
+.aa-battery-notice {
+		position: fixed;
+		left: 18px;
+		bottom: 18px;
+		z-index: 9999;
+		max-width: 320px;
+		width: calc(100% - 36px);
+		background: rgba(255,255,255,0.03);
+		border: 1px solid rgba(255,255,255,0.06);
+		padding: 12px 12px 10px 12px;
+		border-radius: 10px;
+		color: #ffffff;
+		box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+		font-size: 0.9rem;
+}
+.aa-battery-notice h3 { margin: 0 0 6px 0; font-size: 1rem; font-weight: 800; }
+.aa-battery-notice p { margin: 0 0 10px 0; font-size: 0.85rem; color: #e8e8e8; }
+.aa-notice-buttons { display: flex; gap: 8px; justify-content: flex-start; }
+.aa-notice-buttons .aa-btn { text-decoration: none; display: inline-block; padding: 6px 8px; font-weight: 700; border-radius: 8px; }
+.aa-buyme { background: #ffdd57; color: #000; }
+.aa-patreon { background: #f96854; color: #fff; }
+.aa-notice-close { position: absolute; right: 8px; top: 8px; background: transparent; color: #cfcfcf; border: none; font-size: 1.05rem; cursor: pointer; }
+
+@media (max-width: 420px) {
+	.aa-battery-notice { left: 10px; bottom: 10px; max-width: 300px; padding: 8px; }
+	.aa-buyme, .aa-patreon { padding: 6px 6px; font-size: 0.8rem; }
+}
+
+/* Battery icon next to the heading */
+.aa-battery-icon { width: 20px; height: 20px; vertical-align: middle; margin-right: 8px; }
+
+/* Small persistent toggle circle when notice hidden */
+.aa-battery-toggle {
+		position: fixed;
+		left: 18px;
+		bottom: 18px;
+		z-index: 99999;
+		width: 44px;
+		height: 44px;
+		border-radius: 50%;
+		background: rgba(255,255,255,0.04);
+		border: 1px solid rgba(255,255,255,0.06);
+		display: none; /* shown via JS when notice dismissed */
+		align-items: center;
+		justify-content: center;
+		padding: 6px;
+		box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+		cursor: pointer;
+}
+.aa-battery-toggle img { width: 20px; height: 20px; display: block; }
+
+@media (max-width: 420px) {
+	.aa-battery-toggle { left: 10px; bottom: 10px; width: 36px; height: 36px; }
+}
 
 
 

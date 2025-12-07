@@ -26,6 +26,7 @@
     <main>
       <section class="hero">
         <h1 class="site-title">Bringuspedia</h1>
+        <p class="site-subtitle">The Wikipedia for Bringus Studios.</p>
       </section>
       
       <!-- Cards grid: 2 rows x 4 columns -->
@@ -68,10 +69,13 @@
           </div>
         </div>
         <div class="card">
-          <div class="card-image" aria-hidden="true"></div>
+          <div class="card-image">
+            <img src="img/support_a_bringus.jpg" alt="Support a Bringus thumbnail" class="card-thumb" />
+            <span class="support-badge">Support a small creator! :D</span>
+          </div>
           <div class="card-content">
-            <div class="card-title">Video Title</div>
-            <button class="btn-absorb">Absorb knowladge</button>
+            <div class="card-title">Support a Bringus</div>
+            <a class="btn-absorb" href="https://www.patreon.com/u78877687/membership" target="_blank" rel="noopener noreferrer">Go check Pateron or smthn</a>
           </div>
         </div>
         <div class="card">
@@ -96,11 +100,33 @@
           </div>
         </div>
       </section>
+      <div class="more-info">
+        <div class="more-info-title">Looking for more?</div>
+        <div class="more-info-text">We're working on adding more content to Bringuspedia, but that takes time — a lot of time. Please be patient; there will be new videos to read about sooner or later. If you want to support this project, click the 'AA Battery' icon in the bottom-left to find out how you can support Bringuspedia!</div>
+      </div>
     </main>
 
     <script src="js/index.js"></script>
+    <script src="js/notice-clean.js"></script>
     <footer class="site-footer">
       <p><a class="egg-link" href="easteregg.html">Made by a fellow gamer &bull; Not affiliated with Bringus Studios - the name, logo and content are all propterty of Bringus Studios. &bull; Don't click this text</a></p>
     </footer>
+    
+    <!-- AA battery notice (bottom-left) -->
+    <div id="aa-battery-notice" class="aa-battery-notice" role="dialog" aria-labelledby="aa-battery-title" aria-describedby="aa-battery-desc" style="display:none;">
+      <button class="aa-notice-close" aria-label="Dismiss notice">×</button>
+      <h3 id="aa-battery-title"><img src="img/battery.png" alt="" class="aa-battery-icon" aria-hidden="true"/>We use AA batteries</h3>
+      <div id="aa-battery-desc">
+        <p>I really don't know why thats there, no there aren't cookies on here, at least I don't think there are. To support the creation of Bringuspedia, Buy me a coffee or go and support Bringus himself on Pateron!</p>
+        <div class="aa-notice-buttons">
+          <a class="aa-btn aa-buyme" href="https://buymeacoffee.com/rebeccaskittles" target="_blank" rel="noopener noreferrer">Sure here's a coffee</a>
+          <a class="aa-btn aa-patreon" href="https://www.patreon.com/u78877687/membership" target="_blank" rel="noopener noreferrer">Optical Media BAD</a>
+        </div>
+      </div>
+    </div>
+    <!-- Toggle button to re-open the notice when dismissed -->
+    <button id="aa-battery-toggle" class="aa-battery-toggle" aria-label="Show AA battery notice" style="display:none;">
+      <img src="img/battery.png" alt="" />
+    </button>
   </body>
 </html>

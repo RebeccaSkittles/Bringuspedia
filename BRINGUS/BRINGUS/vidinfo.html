@@ -36,6 +36,7 @@
       </div>
     </main>
 
+    <script src="js/notice-clean.js"></script>
     <script>
       // Minimal markdown parser for our use-case (images, headings, paragraphs, lists, bold/italic)
       function renderMarkdown(md) {
@@ -156,5 +157,22 @@
     <footer class="site-footer">
       <p><a class="egg-link" href="easteregg.html">Made by a fellow gamer &bull; Not affiliated with Bringus Studios - the name, logo and content are all propterty of Bringus Studios. &bull; Don't click this text</a></p>
     </footer>
+
+    <!-- AA battery notice (bottom-left) -->
+    <div id="aa-battery-notice" class="aa-battery-notice" role="dialog" aria-labelledby="aa-battery-title" aria-describedby="aa-battery-desc" style="display:none;">
+      <button class="aa-notice-close" aria-label="Dismiss notice">×</button>
+      <h3 id="aa-battery-title"><img src="img/battery.png" alt="" class="aa-battery-icon" aria-hidden="true"/>We use AA batteries</h3>
+      <div id="aa-battery-desc">
+        <p>We really don't idk why thats there, no there aren't cookies on here, at least I don't think there are. To support the creation of Bringuspedia, Buy me a coffee or go and support Bringus himself on Pateron!</p>
+        <div class="aa-notice-buttons">
+          <a class="aa-btn aa-buyme" href="https://buymeacoffee.com/rebeccaskittles" target="_blank" rel="noopener noreferrer">Sure here's a coffee</a>
+          <a class="aa-btn aa-patreon" href="https://www.patreon.com/u78877687/membership" target="_blank" rel="noopener noreferrer">Optical Media BAD</a>
+        </div>
+      </div>
+    </div>
+    <!-- Toggle button to re-open the notice when dismissed -->
+    <button id="aa-battery-toggle" class="aa-battery-toggle" aria-label="Show AA battery notice" style="display:none;">
+      <img src="img/battery.png" alt="" />
+    </button>
   </body>
 </html>
